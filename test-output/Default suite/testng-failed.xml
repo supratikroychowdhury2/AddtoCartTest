@@ -6,6 +6,7 @@
       <class name="com.qa.tests.TestOne">
         <methods>
           <include name="test"/>
+          <include name="afterTest"/>
           <include name="beforeTest"/>
         </methods>
       </class> <!-- com.qa.tests.TestOne -->

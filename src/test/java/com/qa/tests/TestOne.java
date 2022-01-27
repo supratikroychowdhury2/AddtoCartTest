@@ -1,5 +1,14 @@
 package com.qa.tests;
 
+import java.awt.ItemSelectable;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+import java.util.concurrent.TimeUnit;
+
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -13,63 +22,80 @@ import org.testng.annotations.Test;
 public class TestOne {
 	
 	WebDriver driver;
+	PageObjects p=new PageObjects();
+	HashMap<String, String> map=new HashMap<String, String>();
+	
 	
 	@BeforeTest
-	public void beforeTest() {
+	public void beforeTest() throws IOException {
 		
+		map.put("Brocolli", "2");
+		map.put("Brinjal", "1");
 		//initializing drivers and webURL
-		System.setProperty("webdriver.chrome.driver", "C:\\Java Projects\\chromedriver.exe");
+		FileInputStream fis=new FileInputStream("C:\\Users\\SupratikRoychowdhury\\eclipse-workspace\\AddtoCartTest\\src\\test\\resources\\com\\qa\\resources\\GlobalParameters.properties");
+		Properties prop=new Properties();
+		prop.load(fis);
+		String url=prop.getProperty("url");
+		String chromepath=prop.getProperty("chromepath");
+		String path=System.getProperty("user.dir");
+		System.out.println(path+chromepath);
+		System.setProperty("webdriver.chrome.driver",path+chromepath);
 		driver=new ChromeDriver();
-		driver.get("https://rahulshettyacademy.com/seleniumPractise/#/");
+		driver.get(url);
 		driver.manage().window().maximize();
+		
+		
+		
 	}
 	
 	
+	@SuppressWarnings("rawtypes")
 	@Test
 	public void test() throws InterruptedException {
 		
-		//Adding Items to Cart
-		WebElement brocoliQuantity=driver.findElement(By.xpath("//h4[contains(text(),'Brocolli')]/following-sibling::div/input"));
-		brocoliQuantity.clear();
-		brocoliQuantity.sendKeys("2");
-		WebElement brocoliAddtoCart=driver.findElement(By.xpath("//h4[contains(text(),'Brocolli')]/following-sibling::div/button"));
-		brocoliAddtoCart.click();
 		
-		Thread.sleep(5000);
+		for(Map.Entry m: map.entrySet()) {
+		//Adding Items to Cart------------------------------
+		WebElement itemQuantity=driver.findElement(By.xpath("//h4[contains(text(),'"+m.getKey()+"')]/following-sibling::div/input"));
 		
-		WebElement brinjalQuantity=driver.findElement(By.xpath("//h4[contains(text(),'Brinjal')]/following-sibling::div/input"));
-		WebElement brinjalAddtoCart=driver.findElement(By.xpath("//h4[contains(text(),'Brinjal')]/following-sibling::div/button"));
-		brinjalAddtoCart.click();
+		itemQuantity.clear();
+		itemQuantity.sendKeys(m.getValue().toString());
+		WebElement AddtoCart=driver.findElement(By.xpath("//h4[contains(text(),'"+m.getKey()+"')]/following-sibling::div/button"));
+		driver.manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);
+
+		AddtoCart.click();
 		
-		//moving to cart
+		driver.manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);
+		}
+			
+		//moving to cart--------------------------------------
 		WebElement cartIcon=driver.findElement(By.xpath("//img[@alt='Cart']"));
 		cartIcon.click();
 		
-		//moving to checkout page
+		//moving to checkout page-------------------------------
 		WebElement checkoutButton=driver.findElement(By.xpath("//button[contains(text(),'PROCEED TO CHECKOUT')]"));
 		checkoutButton.click();
 		
-		Thread.sleep(2000);
+		driver.manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);
 		
-		//validating the quantity of elements
-		WebElement qty1=driver.findElement(By.xpath("//p[contains(text(),'Brocolli')]/../../td[3]/p"));
-		WebElement qty2=driver.findElement(By.xpath("//p[contains(text(),'Brinjal')]/../../td[3]/p"));
-		Assert.assertEquals(qty1.getText(), "2");
-		Assert.assertEquals(qty2.getText(), "1");
-
+		//validating the quantity of elements---------------------
+		for(Map.Entry p: map.entrySet()) {
+		WebElement qty=driver.findElement(By.xpath("//p[contains(text(),'"+p.getKey()+"')]/../../td[3]/p"));
+		Assert.assertEquals(qty.getText(), p.getValue());
+		}
 		
-		//plcae order
+		//plcae order------------------------------------------------
 		WebElement placeOrder=driver.findElement(By.xpath("//button[contains(text(),'Place Order')]"));
 		placeOrder.click();
 		
 		Select s=new Select(driver.findElement(By.xpath("//select")));
 		s.selectByValue("India");
-		Thread.sleep(3000);
+		driver.manage().timeouts().implicitlyWait(2, TimeUnit.SECONDS);
 		driver.findElement(By.xpath("//input")).click();
 		
-		Thread.sleep(5000);
+		driver.manage().timeouts().implicitlyWait(2, TimeUnit.SECONDS);
 
-		//validating confirmation message
+		//validating confirmation message----------------------------
 		driver.findElement(By.xpath("//button[contains(text(),'Proceed')]")).click();
 		Thread.sleep(2000);
 		String verifyMsg="Thank you, your order has been placed successfully\n"
